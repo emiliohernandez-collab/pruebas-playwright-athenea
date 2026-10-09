@@ -4,7 +4,7 @@ export class MyDataPage {
   constructor(private readonly page: Page) {}
 
   async openFromUserMenu(): Promise<void> {
-    await this.page.getByRole('button', { name: /QA Admin Super Sistema/i }).click();
+    await this.page.getByRole('button', { name: /Administrador/i }).first().click();
     await this.page.getByRole('link', { name: /Mi Cuenta/i }).click();
     await expect(this.page).toHaveURL(/Account\/MyData/i);
     await this.page.getByPlaceholder('Nombre').waitFor({ state: 'visible' });
