@@ -63,7 +63,7 @@ export class ProjectsPage {
     await row.locator('button').last().click();
     const modal = this.page.locator('.swal2-popup').last();
     await expect(modal).toBeVisible({ timeout: 10_000 });
-    await modal.getByRole('button', { name: /Sí, eliminar/i }).click();
+    await modal.getByRole('button', { name: /^(Sí, )?Eliminar$/i }).click();
     await expect(this.page.locator('.pf-file-row').filter({ hasText: fileName })).toHaveCount(before - 1, { timeout: 20_000 });
   }
 
