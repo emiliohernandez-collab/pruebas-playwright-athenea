@@ -40,4 +40,17 @@ export class ProjectsPage {
     await input.setInputFiles(filePath);
     await expect(this.page.locator('body')).toContainText(fileName, { timeout: 20_000 });
   }
+
+  async editLatestFile(fileName: string, description: string): Promise<void> {
+    await this.page.locator('.swal2-popup').waitFor({ state: 'hidden', timeout: 20_000 }).catch(() => undefined);
+    const row = this.page.locator('.pf-file-row').filter({ hasText: fileName }).last();
+    await expect(row).toBeVisible({ timeout: 20_000 });
+    await row.locator('button').first().click();
+    const modal = this.page.locator('.swal2-popup').last();
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    const descriptionField = modal.locator('input.swal2-input');
+    await descriptionField.fill(description);
+    await modal.getByRole('button', { name: /^OK$/i }).click();
+    await expect(this.page.locator('body')).toContainText(description, { timeout: 20_000 });
+  }
 }
