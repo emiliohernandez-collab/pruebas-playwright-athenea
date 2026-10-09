@@ -127,4 +127,19 @@ export class ProjectsPage {
     await modal.getByRole('button', { name: /Sí, eliminar/i }).click();
     await expect(this.page.getByText(title, { exact: true })).toHaveCount(0, { timeout: 20_000 });
   }
+
+  async createMilestone(title: string): Promise<void> {
+    await this.page.getByRole('tab', { name: /Hitos/i }).click();
+    await expect(this.page.getByRole('button', { name: /Nuevo hito/i })).toBeVisible({ timeout: 15_000 });
+    await this.page.getByRole('button', { name: /Nuevo hito/i }).click();
+    const dialog = this.page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+    const fields = dialog.getByRole('textbox');
+    await fields.nth(0).fill(title);
+    await fields.nth(1).fill('Hito temporal creado por automatización QA');
+    await fields.nth(2).fill('2026-12-31');
+    await dialog.getByRole('button', { name: /Crear hito/i }).click();
+    await expect(this.page.getByText(title, { exact: true })).toBeVisible({ timeout: 20_000 });
+    await expect(this.page.locator('body')).toContainText('31/12/2026', { timeout: 20_000 });
+  }
 }
