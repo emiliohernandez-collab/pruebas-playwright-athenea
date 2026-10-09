@@ -80,4 +80,19 @@ export class ProjectsPage {
     await expect(this.page.locator('body')).toContainText(title, { timeout: 20_000 });
     await expect(this.page.locator('body')).toContainText(description, { timeout: 20_000 });
   }
+
+  async editLatestGoal(title: string, newDescription: string): Promise<void> {
+    const titleText = this.page.getByText(title, { exact: true });
+    await expect(titleText).toBeVisible({ timeout: 20_000 });
+    const container = titleText.locator('xpath=ancestor::*[.//button][1]');
+    await container.locator('button').first().click();
+    const modal = this.page.locator('.modal.show').last();
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await modal.locator('textarea').fill(newDescription);
+    await modal.getByRole('button', { name: /Guardar|Actualizar/i }).click();
+    await expect(this.page.locator('body')).toContainText(newDescription, { timeout: 20_000 });
+    await this.page.reload();
+    await this.page.getByRole('tab', { name: /Metas/i }).click();
+    await expect(this.page.locator('body')).toContainText(newDescription, { timeout: 20_000 });
+  }
 }
