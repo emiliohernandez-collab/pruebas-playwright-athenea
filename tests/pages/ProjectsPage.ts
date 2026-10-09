@@ -66,4 +66,18 @@ export class ProjectsPage {
     await modal.getByRole('button', { name: /^Eliminar$/i }).click();
     await expect(this.page.locator('.pf-file-row').filter({ hasText: fileName })).toHaveCount(before - 1, { timeout: 20_000 });
   }
+
+  async createGoal(title: string, description: string): Promise<void> {
+    await this.page.getByRole('tab', { name: /Metas/i }).click();
+    await expect(this.page.getByRole('button', { name: /Nueva meta/i })).toBeVisible({ timeout: 15_000 });
+    await this.page.getByRole('button', { name: /Nueva meta/i }).click();
+    const modal = this.page.locator('#newGoalModal');
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await modal.locator('#goalTitle').fill(title);
+    await modal.locator('#goalDescription').fill(description);
+    await modal.locator('#goalTargetDate').fill('2026-12-31');
+    await modal.getByRole('button', { name: /Crear meta/i }).click();
+    await expect(this.page.locator('body')).toContainText(title, { timeout: 20_000 });
+    await expect(this.page.locator('body')).toContainText(description, { timeout: 20_000 });
+  }
 }
