@@ -46,4 +46,14 @@ export class PortfoliosPage {
     await expect(this.page.getByRole('heading', { name: newName, exact: true })).toBeVisible({ timeout: 20_000 });
     return oldName;
   }
+
+  async deletePortfolio(name: string): Promise<void> {
+    const card = this.page.locator('.portfolio-card').filter({ has: this.page.getByRole('heading', { name, exact: true }) });
+    await expect(card).toBeVisible({ timeout: 20_000 });
+    await card.getByRole('button', { name: /Eliminar/i }).click();
+    const modal = this.page.locator('.modal.show').last();
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await modal.getByRole('button', { name: /^.*Eliminar$/i }).click();
+    await expect(this.page.getByRole('heading', { name, exact: true })).toHaveCount(0, { timeout: 20_000 });
+  }
 }
