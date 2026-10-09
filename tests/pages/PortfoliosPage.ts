@@ -30,4 +30,20 @@ export class PortfoliosPage {
     await card.click();
     return name;
   }
+
+  async renameFirstPortfolio(newName: string): Promise<string> {
+    const card = this.page.locator('.portfolio-card').first();
+    const title = card.locator('.portfolio-card-title').first();
+    const oldName = (await title.textContent())?.trim();
+    if (!oldName) throw new Error('El portafolio seleccionado no tiene nombre visible');
+    await card.getByRole('button', { name: /Editar/i }).click();
+    await expect(this.page.getByRole('heading', { name: /Editar Portafolio/i })).toBeVisible({ timeout: 15_000 });
+    await this.page.getByPlaceholder('Nombre del portafolio').fill(newName);
+    await this.page.getByRole('button', { name: /Actualizar/i }).click();
+    await expect(this.page).toHaveURL(/Portfolios\/Details\//i, { timeout: 20_000 });
+    await expect(this.page.getByRole('heading', { name: newName, exact: true })).toBeVisible({ timeout: 20_000 });
+    await this.open();
+    await expect(this.page.getByRole('heading', { name: newName, exact: true })).toBeVisible({ timeout: 20_000 });
+    return oldName;
+  }
 }
