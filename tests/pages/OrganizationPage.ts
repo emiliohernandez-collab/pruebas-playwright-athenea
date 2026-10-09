@@ -5,7 +5,7 @@ export class OrganizationPage {
 
   async select(name: string): Promise<void> {
     const option = this.page.getByText(name, { exact: true });
-    await expect(option).toBeVisible();
+    await expect(option).toBeVisible({ timeout: 30_000 });
     await option.click();
   }
 

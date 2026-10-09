@@ -4,7 +4,8 @@ export class OrganizationSwitcherPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
-    await this.page.getByRole('button', { name: /QA Checkout Stripe/i }).click();
+    await this.page.locator('button').filter({ hasText: 'QA Checkout Stripe' }).click();
+    await expect(this.page.getByRole('link', { name: /Ribbit/i })).toBeVisible({ timeout: 15_000 });
   }
 
   async switchTo(name: string): Promise<void> {
