@@ -4,7 +4,7 @@ export class LoginPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
-    await this.page.goto(process.env.ATHENEA_LOGIN_PATH ?? '/Account/Login');
+    await this.page.goto(process.env.ATHENEA_LOGIN_PATH ?? '/Account/Login', { waitUntil: 'domcontentloaded' });
   }
 
   async signIn(username: string, password: string): Promise<void> {

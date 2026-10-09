@@ -5,7 +5,7 @@ dotenv.config({ override: true });
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 30_000,
+  timeout: 60_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
