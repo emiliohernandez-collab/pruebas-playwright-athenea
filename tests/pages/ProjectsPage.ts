@@ -95,4 +95,15 @@ export class ProjectsPage {
     await this.page.getByRole('tab', { name: /Metas/i }).click();
     await expect(this.page.locator('body')).toContainText(newDescription, { timeout: 20_000 });
   }
+
+  async completeGoal(title: string): Promise<void> {
+    const titleText = this.page.getByText(title, { exact: true });
+    await expect(titleText).toBeVisible({ timeout: 20_000 });
+    const container = titleText.locator('xpath=ancestor::*[.//input[@type="checkbox"]][1]');
+    const checkbox = container.locator('input[type="checkbox"]').first();
+    await expect(checkbox).toBeVisible();
+    await checkbox.check();
+    await expect(checkbox).toBeChecked();
+    await expect(container).toHaveClass(/bg-light/, { timeout: 20_000 });
+  }
 }
