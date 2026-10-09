@@ -6,6 +6,7 @@ import { PasswordPage } from '../pages/PasswordPage';
 
 test.describe('M00-05-7 — Super Administrador — Cambiar mi contraseña', () => {
   test('cambia la contraseña y valida el nuevo acceso', async ({ page }) => {
+    test.skip(true, 'Caso manual: el cambio de contraseña no se ejecuta automáticamente para evitar bloquear la cuenta.');
     test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD || !process.env.ATHENEA_NEW_PASSWORD, 'Faltan credenciales');
 
     const currentPassword = process.env.ATHENEA_PASSWORD!;
