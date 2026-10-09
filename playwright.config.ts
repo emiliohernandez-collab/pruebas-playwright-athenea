@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import { defineConfig, devices } from '@playwright/test';
 
-dotenv.config({ override: true });
+// Las variables del proceso (por ejemplo, otro rol durante una ejecución) deben
+// tener prioridad sobre el archivo local .env. Nunca se guardan credenciales en el repo.
+dotenv.config();
 
 export default defineConfig({
   testDir: './tests',
