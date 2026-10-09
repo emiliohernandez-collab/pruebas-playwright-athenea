@@ -106,4 +106,14 @@ export class ProjectsPage {
     await expect(checkbox).toBeChecked();
     await expect(container).toHaveClass(/bg-light/, { timeout: 20_000 });
   }
+
+  async reopenGoal(title: string): Promise<void> {
+    const titleText = this.page.getByText(title, { exact: true });
+    const container = titleText.locator('xpath=ancestor::*[.//input[@type="checkbox"]][1]');
+    const checkbox = container.locator('input[type="checkbox"]').first();
+    await expect(checkbox).toBeChecked();
+    await checkbox.uncheck();
+    await expect(checkbox).not.toBeChecked();
+    await expect(container).not.toHaveClass(/bg-light/, { timeout: 20_000 });
+  }
 }
