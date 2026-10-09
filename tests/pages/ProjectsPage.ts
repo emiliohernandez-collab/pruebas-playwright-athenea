@@ -63,7 +63,7 @@ export class ProjectsPage {
     await row.locator('button').last().click();
     const modal = this.page.locator('.swal2-popup').last();
     await expect(modal).toBeVisible({ timeout: 10_000 });
-    await modal.getByRole('button', { name: /^Eliminar$/i }).click();
+    await modal.getByRole('button', { name: /Sí, eliminar/i }).click();
     await expect(this.page.locator('.pf-file-row').filter({ hasText: fileName })).toHaveCount(before - 1, { timeout: 20_000 });
   }
 
@@ -115,5 +115,16 @@ export class ProjectsPage {
     await checkbox.uncheck();
     await expect(checkbox).not.toBeChecked();
     await expect(container).not.toHaveClass(/bg-light/, { timeout: 20_000 });
+  }
+
+  async deleteGoal(title: string): Promise<void> {
+    const titleText = this.page.getByText(title, { exact: true });
+    const container = titleText.locator('xpath=ancestor::*[.//input[@type="checkbox"]][1]');
+    await expect(container).toBeVisible({ timeout: 20_000 });
+    await container.locator('button').last().click();
+    const modal = this.page.locator('.swal2-popup').last();
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await modal.getByRole('button', { name: /Sí, eliminar/i }).click();
+    await expect(this.page.getByText(title, { exact: true })).toHaveCount(0, { timeout: 20_000 });
   }
 }
