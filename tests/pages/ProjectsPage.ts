@@ -28,4 +28,16 @@ export class ProjectsPage {
       await expect(this.page.getByRole('tab', { name: new RegExp(tabName, 'i') })).toBeVisible();
     }
   }
+
+  async openFiles(): Promise<void> {
+    await this.page.getByRole('tab', { name: /Archivos/i }).click();
+    await expect(this.page.getByRole('heading', { name: /Proyecto Archivos/i })).toBeVisible({ timeout: 15_000 });
+  }
+
+  async uploadProjectFile(filePath: string, fileName: string): Promise<void> {
+    await this.page.getByRole('button', { name: /Subir Archivo/i }).click();
+    const input = this.page.locator('input[type="file"]').first();
+    await input.setInputFiles(filePath);
+    await expect(this.page.locator('body')).toContainText(fileName, { timeout: 20_000 });
+  }
 }
