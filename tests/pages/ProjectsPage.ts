@@ -53,4 +53,17 @@ export class ProjectsPage {
     await modal.getByRole('button', { name: /^OK$/i }).click();
     await expect(this.page.locator('body')).toContainText(description, { timeout: 20_000 });
   }
+
+  async deleteLatestFile(fileName: string): Promise<void> {
+    await this.page.locator('.swal2-popup').waitFor({ state: 'hidden', timeout: 20_000 }).catch(() => undefined);
+    const rows = this.page.locator('.pf-file-row').filter({ hasText: fileName });
+    const before = await rows.count();
+    const row = rows.last();
+    await expect(row).toBeVisible({ timeout: 20_000 });
+    await row.locator('button').last().click();
+    const modal = this.page.locator('.swal2-popup').last();
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+    await modal.getByRole('button', { name: /^Eliminar$/i }).click();
+    await expect(this.page.locator('.pf-file-row').filter({ hasText: fileName })).toHaveCount(before - 1, { timeout: 20_000 });
+  }
 }
