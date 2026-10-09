@@ -19,7 +19,7 @@ test.describe('M00-06-7 — Super Administrador — Cerrar sesión', () => {
     await dashboard.expectLoaded();
     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => undefined);
 
-    await page.getByRole('button', { name: /QA Admin Super Sistema/i }).click();
+    await page.getByRole('button', { name: /Administrador/i }).first().click();
     await page.getByRole('link', { name: /Cerrar Sesión/i }).click();
 
     await expect(page).toHaveURL(/Account\/Login/i);
