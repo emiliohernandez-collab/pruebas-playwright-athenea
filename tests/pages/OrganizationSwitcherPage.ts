@@ -4,8 +4,11 @@ export class OrganizationSwitcherPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
-    await this.page.getByRole('button', { name: /QA Checkout Stripe/i }).click();
-    await expect(this.page.getByText('Ribbit', { exact: true })).toBeVisible({ timeout: 15_000 });
+    const selector = this.page.getByRole('button', { name: /QA Checkout Stripe/i });
+    await selector.focus();
+    await selector.press('Enter');
+    await expect(selector).toHaveAttribute('aria-expanded', 'true', { timeout: 5_000 });
+    await expect(this.page.getByText('Mis Organizaciones', { exact: true })).toBeVisible({ timeout: 15_000 });
   }
 
   async switchTo(name: string): Promise<void> {

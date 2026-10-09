@@ -19,6 +19,8 @@ test.describe('M00-02-7 — Super Administrador — Cambiar de organización', (
     await organizationAtLogin.continue();
     await login.expectAuthenticated();
     await dashboard.expectLoaded();
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => undefined);
+    await page.waitForTimeout(500);
 
     await switcher.open();
     await switcher.switchTo(process.env.ATHENEA_OTHER_ORGANIZATION ?? 'Ribbit');
