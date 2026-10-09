@@ -10,6 +10,7 @@ test.describe('M00-05-7 — Super Administrador — Cambiar mi contraseña', () 
 
     const currentPassword = process.env.ATHENEA_PASSWORD!;
     const newPassword = process.env.ATHENEA_NEW_PASSWORD!;
+    const restorePassword = process.env.ATHENEA_RESTORE_PASSWORD ?? currentPassword;
     const login = new LoginPage(page);
     const organization = new OrganizationPage(page);
     const dashboard = new DashboardPage(page);
@@ -34,5 +35,11 @@ test.describe('M00-05-7 — Super Administrador — Cambiar mi contraseña', () 
     await organization.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe');
     await organization.continue();
     await login.expectAuthenticated();
+
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => undefined);
+    await page.getByRole('button', { name: /QA Admin Super Sistema/i }).click();
+    await page.getByRole('link', { name: /Mi Cuenta/i }).click();
+    await password.openDialog();
+    await password.change(newPassword, restorePassword);
   });
 });
