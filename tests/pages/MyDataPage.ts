@@ -24,6 +24,14 @@ export class MyDataPage {
     await this.page.getByPlaceholder('(55) 1234-5678').fill(phone);
   }
 
+  async uploadAvatar(filePath: string): Promise<void> {
+    await this.page.locator('#avatarFileInput').setInputFiles(filePath);
+  }
+
+  async avatarSource(): Promise<string> {
+    return (await this.page.locator('#avatarPreview').getAttribute('src')) ?? '';
+  }
+
   async save(): Promise<void> {
     await this.page.getByRole('button', { name: /guardar cambios/i }).first().click();
     await expect(this.page.locator('body')).toContainText(/guardad|actualizad|éxito|success/i, { timeout: 15_000 });
