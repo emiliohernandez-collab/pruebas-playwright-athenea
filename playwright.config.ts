@@ -11,6 +11,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
     baseURL: process.env.ATHENEA_BASE_URL ?? 'https://ribbit.com.mx:8089',
+    channel: process.env.ATHENEA_BROWSER_CHANNEL || undefined,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
