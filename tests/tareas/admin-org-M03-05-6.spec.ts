@@ -23,4 +23,8 @@ test('M03-05-6 — Administrador Organización — Adjuntar archivo a una tarea'
   const fileInput = page.locator('#fileInput');
   await fileInput.setInputFiles('tests/fixtures/qa-attachment.txt');
   await expect(page.getByRole('tabpanel')).toContainText('qa-attachment.txt', { timeout: 20_000 });
+  await page.waitForTimeout(3_000);
+  await page.reload();
+  await page.getByRole('tab', { name: /Archivos/i }).click();
+  await expect(page.getByRole('tabpanel')).toContainText('qa-attachment.txt', { timeout: 20_000 });
 });
