@@ -24,4 +24,9 @@ test('M03-09-6 — Administrador Organización — Adjuntar archivo a un comenta
   await page.getByRole('button', { name: /Enviar/i }).click();
   await expect(page.locator('#commentsContent')).toContainText('Comentario QA con adjunto M03-09', { timeout: 20_000 });
   await expect(page.locator('#commentsContent')).toContainText('qa-attachment.txt', { timeout: 20_000 });
+  await page.waitForTimeout(2_000);
+  await page.reload();
+  await page.getByRole('tab', { name: /Comentarios/i }).click();
+  await expect(page.locator('#commentsContent')).toContainText('Comentario QA con adjunto M03-09', { timeout: 20_000 });
+  await expect(page.locator('#commentsContent')).toContainText('qa-attachment.txt', { timeout: 20_000 });
 });
