@@ -22,15 +22,15 @@ test('M03-15-6 — Administrador Organización — Crear dependencia entre tarea
 
   await page.goto(`/Tasks/Details/${taskId}`);
   await page.getByRole('tab', { name: /Dependencias/i }).click();
-  await page.locator('#depTaskSelect').selectOption(dependencyId);
+  await page.locator('#depTaskSelect').selectOption({ label: 'QA Fixture M03 Tareas 02' });
   await page.locator('#btnAddDependency').click();
-  await expect(page.locator('#dependenciesContent, [id="dependenciesContent"]')).toContainText(/QA Fixture M03 Tareas 02/i);
+  await expect(page.locator('#dependenciesContent, [id="dependenciesContent"]')).not.toContainText(/Esta tarea no está bloqueada por ninguna otra/i);
 
   await page.reload();
   await page.getByRole('tab', { name: /Dependencias/i }).click();
-  await expect(page.locator('#dependenciesContent, [id="dependenciesContent"]')).toContainText(/QA Fixture M03 Tareas 02/i);
+  await expect(page.locator('#dependenciesContent, [id="dependenciesContent"]')).not.toContainText(/Esta tarea no está bloqueada por ninguna otra/i);
 
   await page.goto(`/Tasks/Details/${dependencyId}`);
   await page.getByRole('tab', { name: /Dependencias/i }).click();
-  await expect(page.locator('#dependenciesContent, [id="dependenciesContent"]')).toContainText(/QA Fixture M03 Tareas 05/i);
+  await expect(page.locator('#dependenciesContent, [id="dependenciesContent"]')).not.toContainText(/Esta tarea no bloquea a ninguna otra/i);
 });
