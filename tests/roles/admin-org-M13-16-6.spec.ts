@@ -21,4 +21,17 @@ test('M13-16-6 — Administrador Organización — Crear plantilla de notificaci
   await page.goto('/NotificationTemplates/Create');
   await expect(page.locator('body')).toContainText(/Plantilla|Notificación|Crear/i);
   await expect(page.locator('input, textarea, select').first()).toBeVisible();
+  const name = `QA Playwright plantilla ${Date.now()}`;
+  await page.locator('#name').fill(name);
+  await page.locator('#description').fill('Plantilla creada por prueba automatizada y validada para persistencia.');
+  await page.locator('#notificationType').selectOption({ label: 'Email' });
+  await page.locator('#category').fill('QA');
+  await page.locator('#language').selectOption({ label: 'Español' });
+  await page.locator('#defaultPriority').selectOption({ label: 'Normal' });
+  await page.locator('#subject').fill('Prueba automatizada {{userName}}');
+  await page.locator('#body').fill('Contenido de prueba para {{userName}}.');
+  await page.getByRole('button', { name: /Crear plantilla/i }).click();
+  await expect(page.locator('body')).toContainText(/creada|éxito|correctamente|Plantilla/i);
+  await page.reload();
+  await expect(page.locator('body')).toContainText(name);
 });
