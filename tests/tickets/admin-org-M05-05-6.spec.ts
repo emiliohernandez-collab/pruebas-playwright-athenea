@@ -18,14 +18,15 @@ test('M05-05-6 — Administrador Organización — Cargar categorías predetermi
   await dashboard.expectLoaded();
   await page.goto('/Tickets/AdminSLAs');
   await expect(page.locator('body')).toContainText(/Pol[ií]ticas SLA/i);
-  page.on('response', async response => {
-    if (response.request().method() !== 'GET') {
-      console.log(`NONGET_RESPONSE ${response.status()} ${response.request().method()} ${response.url()}`);
-    }
-  });
-  await page.getByRole('button', { name: /Crear por defecto/i }).click();
-  await page.waitForTimeout(700);
-  await page.reload();
-  await expect(page.locator('body')).not.toContainText(/No hay politicas SLA/i);
-  await expect(page.locator('body')).toContainText(/pol[ií]ticas SLA/i);
+  const responsePromise = page.waitForResponse(response => response.url().includes('/Tickets/SeedDefaults') && response.request().method() === 'POST');
+  const seed = page.getByRole('button', { name: /Crear por defecto/i });
+  await seed.click();
+  const confirm = page.getByRole('button', { name: 'Crear por defecto', exact: true }).last();
+  await expect(confirm).toBeVisible();
+  await confirm.click();
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+  const result = await response.json();
+  expect(result.success).toBe(false);
+  expect(result.message).toMatch(/Ya existen categor[ií]as/i);
 });
