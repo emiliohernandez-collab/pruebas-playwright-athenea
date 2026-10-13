@@ -20,4 +20,8 @@ test('M13-06-6 — Administrador Organización — Solicitar verificación de Wh
   await dashboard.expectLoaded();
   await page.goto('/NotificationCenter/Channels');
   await expect(page.locator('body')).toContainText(/WhatsApp/i);
+  await page.getByRole('button', { name: 'Enviar código', exact: true }).click();
+  await page.waitForTimeout(1000);
+  await expect(page.locator('body')).toContainText(/Enviado|c[oó]digo/i);
+  // La confirmación requiere el código real recibido en el teléfono del perfil.
 });
