@@ -18,12 +18,17 @@ test('M11-02-6 — Administrador Organización — Invitar miembro', async ({ pa
   await dashboard.expectLoaded();
   await page.goto('/OrganizationMembers/Invite');
   await expect(page.locator('body')).not.toContainText(/Sin permiso|Acceso denegado|403/i);
-  const email = `qa-invite-${Date.now()}@example.com`;
+  const email = process.env.ATHENEA_MEMBER_EMAIL ?? `qa-invite-${Date.now()}@example.com`;
   const input = page.locator('input[type="email"]').first();
   await expect(input).toBeVisible();
   await input.fill(email);
   const role = page.locator('select').first();
-  if (await role.count()) await role.selectOption({ index: 1 });
+  if (await role.count()) {
+    console.log('M11-02 roles:', await role.locator('option').allTextContents());
+    const adminOrg = role.locator('option').filter({ hasText: /Administrador(?: de)? Organización/i }).first();
+    if (await adminOrg.count()) await role.selectOption(await adminOrg.getAttribute('value') as string);
+    else await role.selectOption({ index: 1 });
+  }
   await page.getByRole('button', { name: /Invitar|Enviar/i }).first().click();
   await expect(page.locator('body')).toContainText(/Pendiente|invitación|invitacion|enviad/i);
 });
