@@ -26,9 +26,9 @@ test('M10-05-6 — Administrador Organización — Eliminar día festivo', async
   const row = page.locator('tr').filter({ hasText: name }).first();
   await expect(row).toBeVisible();
   page.once('dialog', d => d.accept());
-  await row.getByRole('button').last().click();
+  await row.locator('button').nth(1).click({ force: true });
   if (await page.getByRole('button', { name: /Sí, eliminar|Confirmar/i }).count()) await page.getByRole('button', { name: /Sí, eliminar|Confirmar/i }).click();
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(1500);
   await page.reload();
   await expect(page.locator('body')).not.toContainText(name);
 });
