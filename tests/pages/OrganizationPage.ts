@@ -4,7 +4,7 @@ export class OrganizationPage {
   constructor(private readonly page: Page) {}
 
   async select(name: string): Promise<void> {
-    const option = this.page.getByText(name, { exact: true });
+    const option = this.page.getByText(name, { exact: false }).first();
     await expect(option).toBeVisible({ timeout: 30_000 });
     await option.click();
   }
