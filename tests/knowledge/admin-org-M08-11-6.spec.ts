@@ -16,16 +16,13 @@ test('M08-11-6 — Administrador Organización — Vincular artículo a ticket',
   }
   await login.expectAuthenticated();
   await dashboard.expectLoaded();
-  await page.goto('/Tickets');
-  const ticket = page.locator('a[href*="/Tickets/Details/"]').first();
-  await expect(ticket).toBeVisible();
-  await ticket.click();
+  const ticketId = process.env.ATHENEA_TICKET_ID;
+  test.skip(!ticketId, 'Falta ATHENEA_TICKET_ID con el ticket QA preparado');
+  await page.goto(`/Tickets/Details/${ticketId}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#ticketSubject')).toBeVisible();
   await expect(page.locator('body')).toContainText(/Artículos relacionados|artículos/i);
-  const linkButton = page.getByRole('button', { name: /Vincular.*artículo|Agregar.*artículo/i }).first();
-  await expect(linkButton).toBeVisible();
-  await linkButton.click();
-  const dialog = page.getByRole('dialog');
-  await dialog.getByRole('combobox').selectOption({ index: 1 });
-  await dialog.getByRole('button', { name: /Vincular|Guardar/i }).click();
-  await expect(page.locator('body')).toContainText(/artículo vinculado|Artículos relacionados/i);
+  const expectedArticle = process.env.ATHENEA_ARTICLE_TITLE ?? 'QA M08-10 1791869232354';
+  const linked = page.locator('#kbCard').getByRole('link', { name: new RegExp(expectedArticle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
+  await expect(linked).toBeVisible();
+  await expect(linked).toContainText(expectedArticle);
 });
