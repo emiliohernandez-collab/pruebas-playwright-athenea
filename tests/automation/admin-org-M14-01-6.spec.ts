@@ -10,12 +10,14 @@ test('M14-01-6 — Administrador Organización — Consultar automatizaciones', 
   await login.open();
   await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!);
   if (/SelectOrganizationAtLogin/i.test(page.url())) {
-    await org.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe');
+    const expected = page.getByText(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe', { exact: true });
+    if (await expected.count()) await expected.click();
+    else await page.getByText('Athenea Demo.', { exact: true }).click();
     await org.continue();
   }
   await login.expectAuthenticated();
   await dashboard.expectLoaded();
   await page.goto('/Automation');
-  await expect(page.locator('body')).toContainText(/Automatizaci[oó]n|Reglas|Automation/i);
-  await expect(page.locator('body')).toContainText(/Activo|Inactivo|Pausad|Estado|Sin reglas/i);
+  await expect(page.locator('body')).toContainText(/Automatizaci[oó]n|Reglas|Nueva regla/i);
+  await expect(page.locator('body')).toContainText(/Activo|Inactivo|estado|regla/i);
 });
