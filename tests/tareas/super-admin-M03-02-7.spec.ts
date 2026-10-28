@@ -1,0 +1,25 @@
+import { expect, test } from '@playwright/test';
+import { DashboardPage } from '../pages/DashboardPage';
+import { LoginPage } from '../pages/LoginPage';
+import { OrganizationPage } from '../pages/OrganizationPage';
+
+test('M03-02-7 — Super Administrador — Asignar responsable a una tarea', async ({ page }) => {
+  test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD, 'Faltan credenciales');
+  const login = new LoginPage(page);
+  const org = new OrganizationPage(page);
+  const dashboard = new DashboardPage(page);
+  await login.open();
+  await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!);
+  if (/SelectOrganizationAtLogin/i.test(page.url())) {
+    await org.select(process.env.ATHENEA_ORGANIZATION ?? 'Ribbit');
+    await org.continue();
+  }
+  await login.expectAuthenticated();
+  await dashboard.expectLoaded();
+  await page.goto('/Tasks/Details/03cbdef4-1f43-4e98-bff5-c63408ac8052');
+  await expect(page).toHaveURL(/Tasks\/Details\//i);
+  const assignee = page.locator('#extraAssigneeSelect');
+  await assignee.selectOption({ label: 'QA Admin Super Sistema' });
+  await page.locator('#btnAddExtraAssignee').click();
+  await expect(page.locator('#taskExtraAssignees')).toContainText('QA Admin Super Sistema');
+});
