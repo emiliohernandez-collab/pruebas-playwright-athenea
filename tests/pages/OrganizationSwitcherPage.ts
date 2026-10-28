@@ -4,7 +4,7 @@ export class OrganizationSwitcherPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
-    const selector = this.page.getByRole('button', { name: /QA Checkout Stripe/i });
+    const selector = this.page.getByRole('button', { name: /(Ribbit|QA Checkout Stripe)/i }).first();
     await selector.focus();
     await selector.press('Enter');
     await expect(selector).toHaveAttribute('aria-expanded', 'true', { timeout: 5_000 });
