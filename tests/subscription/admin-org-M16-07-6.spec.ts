@@ -20,5 +20,8 @@ test('M16-07-6 — Administrador Organización — Cambiar de plan', async ({ pa
   await page.getByPlaceholder('Full name on card').fill('QA Automation Test');
   await page.getByRole('button', { name: /Subscribe|Suscribirse/i }).click();
   await expect(page.locator('body')).toContainText(/success|successful|suscripci[oó]n|Professional|Gracias|completed/i, { timeout: 20_000 });
+  await page.waitForTimeout(10_000);
+  await page.goto('/OrganizationSubscription/ViewPlan');
+  await expect(page.locator('body')).toContainText(/Professional/i, { timeout: 20_000 });
   await page.screenshot({ path: 'test-results/m16-07-upgrade-plan.png', fullPage: true });
 });

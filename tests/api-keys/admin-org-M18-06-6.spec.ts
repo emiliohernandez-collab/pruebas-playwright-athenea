@@ -18,7 +18,7 @@ test('M18-06-6 — Administrador Organización — Revocar llave API', async ({ 
   const revoke = page.getByRole('button', { name: /Revocar|Revoke/i }).first();
   await expect(revoke).toBeVisible({ timeout: 15_000 });
   await revoke.click();
-  const confirm = page.getByRole('button', { name: /Confirmar|Sí|Revocar|Revoke/i }).last();
+  const confirm = page.locator('#revokeModal').getByRole('button', { name: /Confirmar|Sí|Revocar|Revoke/i }).last();
   await expect(confirm).toBeVisible({ timeout: 8_000 });
   await confirm.click();
   await expect(page.locator('body')).toContainText(/Revocada|Revoked/i, { timeout: 15_000 });
