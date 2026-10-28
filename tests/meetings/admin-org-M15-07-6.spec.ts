@@ -21,7 +21,7 @@ test('M15-07-6 — Administrador Organización — Iniciar análisis con IA', as
   await page.getByRole('button', { name: /Subir|Nueva reuni[oó]n|Cargar/i }).last().click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('textbox').fill('QA VALID TRANSCRIBE M15-07-6');
-  await dialog.locator('input[type="file"]').last().setInputFiles('C:/Users/emily/Downloads/Record (online-voice-recorder.com).mp3');
+  await dialog.locator('input[type="file"]').first().setInputFiles('C:/Users/emily/OneDrive/Documentos/pruebas-playwright/qa-meeting-with-audio.mp4');
   await dialog.getByRole('button', { name: /Subir Grabación/i }).last().click();
   await expect(page.locator('body')).toContainText(/Completed/i, { timeout: 60_000 });
   await page.reload();
@@ -31,8 +31,15 @@ test('M15-07-6 — Administrador Organización — Iniciar análisis con IA', as
   const transcribe = page.getByRole('button', { name: /Transcripci[oó]n|Transcribir/i }).first();
   await expect(transcribe).toBeVisible({ timeout: 15_000 });
   await transcribe.click();
-  await expect(page.locator('body')).toContainText(/transcript available|transcripci[oó]n|completad/i, { timeout: 60_000 });
+  let analysisReady = false;
+  for (let i = 0; i < 18; i++) {
+    const body = await page.locator('body').innerText();
+    if (/Analizar|Iniciar an[aá]lisis|Resumen|Acuerdos|Tareas sugeridas/i.test(body)) { analysisReady = true; break; }
+    await page.waitForTimeout(5_000);
+    await page.reload();
+  }
   const analyze = page.getByRole('button', { name: /Analizar|Análisis IA|Iniciar an[aá]lisis/i }).first();
+  expect(analysisReady).toBeTruthy();
   await expect(analyze).toBeVisible({ timeout: 15_000 });
   await analyze.click();
   await expect(page.locator('body')).toContainText(/Análisis|resumen|acuerdos|tareas|procesando|completad/i, { timeout: 30_000 });
