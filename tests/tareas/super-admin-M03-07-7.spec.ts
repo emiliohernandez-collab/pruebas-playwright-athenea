@@ -21,9 +21,10 @@ test('M03-07-7 — Super Administrador — Eliminar adjunto de tarea', async ({ 
   const fileInput = page.locator('#fileInput');
   await fileInput.setInputFiles('tests/fixtures/qa-attachment.txt');
   const files = page.locator('.file-item').filter({ hasText: 'qa-attachment.txt' });
+  await expect(files).toHaveCount(2, { timeout: 20_000 });
   const before = await files.count();
   expect(before).toBeGreaterThanOrEqual(2);
-  await files.first().locator('button[title="Eliminar"]').click();
+  await files.last().locator('button[title="Eliminar"]').click();
   await page.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
   await expect(page.locator('.file-item').filter({ hasText: 'qa-attachment.txt' })).toHaveCount(before - 1, { timeout: 20_000 });
   await page.reload();
