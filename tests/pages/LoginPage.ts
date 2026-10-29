@@ -4,13 +4,17 @@ export class LoginPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
-    await this.page.goto(process.env.ATHENEA_LOGIN_PATH ?? '/Account/Login', { waitUntil: 'commit', timeout: 20_000 });
-    await this.page.locator('#Email').waitFor({ state: 'visible', timeout: 20_000 });
+    try {
+      await this.page.goto(process.env.ATHENEA_LOGIN_PATH ?? '/Account/Login', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    } catch (error) {
+      if (!String(error).includes('ERR_ABORTED')) throw error;
+    }
+    await this.page.getByLabel(/correo electrónico|email/i).waitFor({ state: 'visible', timeout: 20_000 });
   }
 
   async signIn(username: string, password: string): Promise<void> {
-    const email = this.page.locator('#Email');
-    const passwordInput = this.page.locator('#Password');
+    const email = this.page.getByLabel(/correo electrónico|email/i);
+    const passwordInput = this.page.getByLabel(/contraseña|password/i);
 
     await email.fill(username);
     await passwordInput.fill(password);
