@@ -18,10 +18,13 @@ test('M05-05-7 — Super Administrador — Cargar categorías/SLA predeterminado
   await dashboard.expectLoaded();
   await page.goto('/Tickets/AdminCategories');
   await expect(page.locator('body')).toContainText(/Categor[ií]as/i);
-  const responsePromise = page.waitForResponse(response => response.url().includes('/ticket-categories/seed-defaults') && response.request().method() === 'POST');
-  await page.evaluate(() => {
-    fetch('/api/v1/ticket-categories/seed-defaults', { method: 'POST' });
+  page.on('request', request => {
+    if (request.method() === 'POST') console.log(`POST ${request.url()}`);
   });
+  const responsePromise = page.waitForResponse(response => response.request().method() === 'POST' && /seed|categor|default/i.test(response.url()));
+  await page.getByRole('button', { name: /Crear por defecto/i }).first().click();
+  const confirm = page.getByRole('button', { name: /Crear por defecto/i }).last();
+  if (await confirm.isVisible().catch(() => false)) await confirm.click();
   const response = await responsePromise;
   expect(response.status()).toBe(200);
   const result = await response.json();
