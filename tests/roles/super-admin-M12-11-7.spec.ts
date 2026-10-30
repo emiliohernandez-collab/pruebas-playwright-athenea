@@ -9,14 +9,20 @@ test('M12-11-7 — Super Administrador — Crear rol', async ({ page }) => {
   await login.open(); await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!);
   if (/SelectOrganizationAtLogin/i.test(page.url())) { await org.select('QA Checkout Stripe'); await org.continue(); }
   await login.expectAuthenticated(); await dashboard.expectLoaded();
-  const name = `QA Playwright M12-11-7 ${Date.now()}`;
+  const name = `QA M12-11 ${Date.now()}`;
   await page.goto('/Roles/Create');
   await page.locator('#Name').fill(name);
   await page.locator('#Description').fill('Temporary role fixture for M12-11-7.');
   await page.getByRole('button', { name: /Crear rol/i }).click();
-  await page.goto('/Roles');
+  await expect(page).toHaveURL(/\/Roles$/, { timeout: 15_000 });
+  await page.waitForTimeout(2_000);
+  await expect(page.locator('body')).toContainText(/Rol creado exitosamente|Procesando, por favor espere/i);
+  await page.locator('#searchInput').fill(name);
+  await page.locator('#searchInput').press('Tab');
+  await page.waitForTimeout(700);
   const row = page.getByRole('row').filter({ hasText: name }).first();
   await expect(row).toBeVisible();
   await row.locator('a[href*="/Roles/Delete/"]').click();
-  await page.getByRole('button', { name: /Sí, eliminar|Confirmar|Eliminar/i }).last().click().catch(() => {});
+  const confirm = page.locator('button.swal2-confirm');
+  if (await confirm.count()) { await expect(confirm).toBeVisible(); await confirm.click(); }
 });
