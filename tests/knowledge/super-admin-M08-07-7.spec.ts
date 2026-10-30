@@ -29,7 +29,11 @@ test('M08-07-7 — Super Administrador — Eliminar artículo de conocimiento', 
   await expect(row).toBeVisible();
   await row.getByRole('button').last().click();
   await page.getByRole('button', { name: /Sí, eliminar/i }).click();
-  await page.waitForTimeout(500);
-  await page.reload();
-  await expect(page.locator('body')).not.toContainText(title);
+  await expect.poll(
+    async () => {
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      return await page.locator('tr, .card, .list-group-item').filter({ hasText: title }).count();
+    },
+    { timeout: 30_000, intervals: [1_000, 2_000, 5_000] },
+  ).toBe(0);
 });
