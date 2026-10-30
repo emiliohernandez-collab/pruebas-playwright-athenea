@@ -29,9 +29,9 @@ test('M12-13-7 — Super Administrador — Eliminar rol con reasignación', asyn
   await page.getByRole('button', { name: /Sí, asignar rol/i }).click();
   await expect(page.getByRole('row').filter({ hasText: 'emilyhdzp@gmail.com' })).toBeVisible();
   await page.goto(deleteHref!);
-  const replacement = page.locator('#replacementRoleId');
+  const replacement = page.locator('#reassignToRoleId');
   await expect(replacement).toBeVisible();
-  await replacement.selectOption({ label: /Administrador Organización Sistema/i });
+  await replacement.selectOption({ label: 'Administrador Organización' });
   await page.getByRole('button', { name: /Eliminar rol/i }).click();
   await expect(page).toHaveURL(/\/Roles$/, { timeout: 15_000 });
   await page.waitForTimeout(1000);
