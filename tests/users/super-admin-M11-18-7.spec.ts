@@ -35,9 +35,15 @@ test('M11-18-7 — Super Administrador — Editar usuario del sistema', async ({
   await page.goto('/Users');
   await search.fill(email); await page.getByRole('button', { name: /Buscar/i }).click();
   const updated = page.getByRole('row').filter({ hasText: email }).first();
-  await expect(updated).toContainText('QA Fixture Editado');
-  await expect(updated).toContainText('Actualizado');
-  await updated.locator('a').last().click();
+  await expect(updated).toBeVisible();
+  await updated.locator('a').first().click();
+  await expect(page.getByText('QA Fixture Editado', { exact: true })).toBeVisible();
+  await expect(page.locator('div.info-value').filter({ hasText: /^Actualizado$/ })).toBeVisible();
+  await page.getByRole('link', { name: /Volver a la lista/i }).click();
+  await page.locator('input[name="search"]').fill(email);
+  await page.getByRole('button', { name: /Buscar/i }).click();
+  const cleanupRow = page.getByRole('row').filter({ hasText: email }).first();
+  await cleanupRow.locator('a').last().click();
   await page.locator('#confirmDeleteBtn').click();
   await page.locator('button.swal2-confirm').click();
   await expect(page).toHaveURL(/\/Users$/);
