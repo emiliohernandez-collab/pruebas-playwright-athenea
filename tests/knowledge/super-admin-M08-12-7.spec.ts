@@ -1,0 +1,54 @@
+import { expect, test } from '@playwright/test';
+import { DashboardPage } from '../pages/DashboardPage';
+import { LoginPage } from '../pages/LoginPage';
+import { OrganizationPage } from '../pages/OrganizationPage';
+
+test('M08-12-7 — Super Administrador — Desvincular artículo de ticket', async ({ page }) => {
+  test.setTimeout(75_000);
+  test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD, 'Faltan credenciales');
+  const login = new LoginPage(page);
+  const org = new OrganizationPage(page);
+  const dashboard = new DashboardPage(page);
+  await login.open();
+  await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!);
+  if (/SelectOrganizationAtLogin/i.test(page.url())) {
+    await org.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe');
+    await org.continue();
+  }
+  await login.expectAuthenticated();
+  await dashboard.expectLoaded();
+  const articleTitle = `QA M08-12 ${Date.now()}`;
+  await page.goto('/KnowledgeBase/Admin');
+  await page.getByRole('button', { name: /Nuevo artículo|Agregar artículo|Crear artículo/i }).first().click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('textbox').first().fill(articleTitle);
+  if (await dialog.locator('textarea').count()) await dialog.locator('textarea').first().fill('Artículo QA para desvincular.');
+  if (await dialog.locator('select').count()) await dialog.locator('select').first().selectOption({ index: 1 });
+  await dialog.getByRole('button', { name: /Guardar|Crear/i }).click();
+  const articleRow = page.locator('tr').filter({ hasText: articleTitle }).first();
+  await expect(articleRow).toBeVisible();
+  await articleRow.getByRole('button').nth(1).click();
+  await page.waitForTimeout(500);
+  await page.goto('/Tickets/Create');
+  await page.getByLabel(/Asunto/i).fill(`QA M08-12 ticket ${Date.now()}`);
+  await page.locator('[contenteditable="true"]').first().fill('Ticket QA para validar desvinculación.');
+  const category = page.getByRole('combobox', { name: /Categoria/i });
+  if (await category.count() && await category.locator('option').count() > 1) await category.selectOption({ index: 1 });
+  await page.getByRole('button', { name: /Crear Ticket/i }).last().click();
+  await expect(page).toHaveURL(/\/Tickets\/Details\//);
+  const kb = page.locator('#kbCard');
+  const search = kb.getByPlaceholder(/Buscar artículos/i);
+  await search.fill(articleTitle);
+  const option = page.getByText(articleTitle, { exact: true }).last();
+  await expect(option).toBeVisible({ timeout: 20_000 });
+  await option.click();
+  const linked = kb.getByRole('link', { name: articleTitle });
+  await expect(linked).toBeVisible();
+  const linkedContainer = linked.locator('xpath=..');
+  const remove = linkedContainer.getByRole('button').last();
+  await expect(remove).toBeVisible();
+  await remove.click();
+  const confirm = page.getByRole('button', { name: /Sí|Confirmar|Desvincular|Eliminar/i }).last();
+  if (await confirm.isVisible().catch(() => false)) await confirm.click();
+  await expect(kb.getByRole('link', { name: articleTitle })).toHaveCount(0);
+});
