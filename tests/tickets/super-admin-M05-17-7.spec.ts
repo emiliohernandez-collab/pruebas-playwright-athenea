@@ -27,7 +27,13 @@ test('M05-17-7 — Super Administrador — Liberar ticket', async ({ page }) => 
   await expect(page).toHaveURL(/\/Tickets\/Details\//);
   await expect(page.locator('body')).toContainText(subject);
   const assignee = page.getByRole('combobox').filter({ has: page.locator('option') }).last();
-  await assignee.selectOption({ label: 'QA Admin Super Sistema' });
+  const options = await assignee.locator('option').allTextContents();
+  const other = options.find(label => !/Sin asignar|QA Admin Super Sistema/i.test(label.trim()));
+  if (!other) throw new Error('No hay otro usuario QA disponible para validar liberar ticket');
+  await assignee.selectOption({ label: other.trim() });
+  await page.waitForTimeout(700);
+  const status = page.getByRole('combobox').filter({ has: page.locator('option') }).first();
+  await status.selectOption({ label: 'En Progreso' });
   await page.waitForTimeout(700);
   const release = page.locator('#btnReleaseTicket');
   await expect(release).toHaveCount(1);
