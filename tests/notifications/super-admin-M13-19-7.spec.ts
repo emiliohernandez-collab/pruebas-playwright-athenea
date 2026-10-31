@@ -14,11 +14,18 @@ test('M13-19-7 — Super Administrador — Activar o desactivar plantilla', asyn
   await expect(page.getByText('Plantilla creada correctamente')).toBeVisible();
 
   let card = page.getByText(name, { exact: true }).locator('xpath=ancestor::div[.//a[contains(@href,"/NotificationTemplates/Edit/")]][1]');
-  await card.locator('button[onclick*="toggleActive"]').click();
-  await page.waitForTimeout(1_500);
-  await page.reload();
-  card = page.getByText(name, { exact: true }).locator('xpath=ancestor::div[.//a[contains(@href,"/NotificationTemplates/Edit/")]][1]');
-  await expect(card).toContainText('Inactivo');
+    await page.reload();
+    card = page.getByText(name, { exact: true }).locator('xpath=ancestor::div[.//a[contains(@href,"/NotificationTemplates/Edit/")]][1]');
+    await expect(card).toContainText('Inactivo');
+
+    const editHref = await card.locator('a[href*="/NotificationTemplates/Edit/"]').getAttribute('href');
+    await page.goto(editHref!);
+    await page.locator('#isActive').check();
+    await page.getByRole('button', { name: /Guardar cambios/i }).click();
+    await expect(page.getByText(/actualizada correctamente|guardados correctamente/i)).toBeVisible();
+    await page.goto('/NotificationTemplates');
+    card = page.getByText(name, { exact: true }).locator('xpath=ancestor::div[.//a[contains(@href,"/NotificationTemplates/Edit/")]][1]');
+    await expect(card).toContainText('Activo');
 
   await card.locator('button[onclick*="toggleActive"]').click();
   await page.waitForTimeout(700);
