@@ -10,7 +10,7 @@ const { chromium } = require('@playwright/test');
   const baseURL = process.env.ATHENEA_BASE_URL || 'https://ribbit.com.mx:8089';
   const authDir = path.resolve('auth');
   await fs.mkdir(authDir, { recursive: true });
-  const context = await chromium.launchPersistentContext(path.join(authDir, 'qa-checkout-stripe-profile'), {
+  const context = await chromium.launchPersistentContext(path.join(authDir, 'qa-checkout-stripe-profile-fresh'), {
     channel: process.env.ATHENEA_BROWSER_CHANNEL || 'chrome',
     headless: false,
     ignoreHTTPSErrors: true,
@@ -25,13 +25,20 @@ const { chromium } = require('@playwright/test');
     await page.getByLabel(/correo electrónico/i).fill(user);
     await page.getByLabel(/contraseña/i).fill(password);
     await page.getByRole('button', { name: /iniciar sesión|entrar|login/i, exact: true }).click();
-    await page.waitForTimeout(3000);
-    if (/Account\/Login/i.test(page.url()) || await page.getByText(/invalid credentials|credenciales inválidas/i).isVisible().catch(() => false)) {
+    await page.waitForTimeout(8000);
+    if (await page.getByText(/error interno del servidor|invalid credentials|credenciales inválidas/i).isVisible().catch(() => false)) {
       throw new Error('El login QA no fue aceptado; no se guardó el estado de sesión.');
+    }
+    if (/SelectOrganizationAtLogin/i.test(page.url()) || await page.getByRole('heading', { name: /seleccionar organización/i }).isVisible().catch(() => false)) {
+      const organization = process.env.ATHENEA_ORGANIZATION || 'QA Checkout Stripe';
+      await page.getByText(organization, { exact: true }).click();
+      await page.getByRole('button', { name: /continuar/i, exact: true }).click();
+      await page.waitForTimeout(1500);
     }
     await page.goto(`${baseURL}/Tasks/MyTasks`, { waitUntil: 'commit', timeout: 30000 }).catch((e) => {
       if (!String(e).includes('ERR_ABORTED')) throw e;
     });
+    if (/Account\/Login/i.test(page.url())) throw new Error('La sesión QA no quedó autenticada; no se guardó el estado.');
     const organization = process.env.ATHENEA_ORGANIZATION || 'QA Checkout Stripe';
     const switcher = page.locator('button').filter({ hasText: /Ribbit|QA Checkout Stripe/ }).first();
     if (await switcher.isVisible().catch(() => false)) {

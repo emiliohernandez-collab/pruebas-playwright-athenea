@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
 import { OrganizationPage } from '../pages/OrganizationPage';
+import path from 'node:path';
 test.use({ ignoreHTTPSErrors: true });
 
 test('M15-02-7 — Super Administrador — Iniciar carga de reunión', async ({ page }) => {
@@ -20,9 +21,9 @@ test('M15-02-7 — Super Administrador — Iniciar carga de reunión', async ({ 
   await login.expectAuthenticated();
   await dashboard.expectLoaded();
   await page.goto('/Meetings');
-  await page.getByRole('button', { name: /Subir|Nueva reuni[oó]n|Cargar/i }).last().click();
-  const input = page.locator('input[type="file"]').first();
-  await expect(input).toBeAttached();
-  await input.setInputFiles({ name: 'qa-meeting.wav', mimeType: 'audio/wav', buffer: Buffer.from('RIFF----WAVEfmt ', 'ascii') });
-  await expect(page.locator('body')).toContainText(/carg|progreso|proces|subir|archivo/i);
+  await page.getByRole('button', { name: /Subir Grabación/i }).first().click();
+  await page.locator('input[type="text"]').nth(1).fill('QA reunión automatizada M15-02-7');
+  await page.locator('input[type="file"]').first().setInputFiles(path.resolve('qa-meeting-with-audio.mp4'));
+  await page.getByRole('button', { name: /Subir Grabación/i }).last().click();
+  await expect(page.locator('body')).toContainText(/Grabación subida|Puedes transcribirla|Completed/i);
 });
