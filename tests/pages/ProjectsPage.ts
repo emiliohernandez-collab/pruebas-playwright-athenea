@@ -6,7 +6,7 @@ export class ProjectsPage {
   async open(): Promise<void> {
     await this.page.goto('/Projects/Index', { waitUntil: 'commit', timeout: 20_000 });
     await expect(this.page).toHaveURL(/Projects\/Index/i);
-    await expect(this.page.getByRole('heading', { name: /Proyectos/i })).toBeVisible({ timeout: 20_000 });
+    await expect(this.page.getByRole('heading', { level: 4, name: /Proyectos/i })).toBeVisible({ timeout: 20_000 });
     await expect(this.page.getByText(/Total Proyectos/i)).toBeVisible();
   }
 
