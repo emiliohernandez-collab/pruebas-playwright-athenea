@@ -1,0 +1,14 @@
+import { expect, test } from '@playwright/test';
+import { DashboardPage } from '../pages/DashboardPage';
+import { LoginPage } from '../pages/LoginPage';
+import { OrganizationPage } from '../pages/OrganizationPage';
+
+test('M03-16-5 — Manager Proyectos — Editar dependencia', async ({ page }, testInfo) => {
+  test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD, 'Faltan credenciales');
+  const login = new LoginPage(page); const org = new OrganizationPage(page); const dashboard = new DashboardPage(page);
+  await login.open(); await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!); if (/SelectOrganizationAtLogin/i.test(page.url())) { await org.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe'); await org.continue(); }
+  await login.expectAuthenticated(); await dashboard.expectLoaded(); const marker = Date.now();
+  const createTask = async (name: string) => { await page.goto('/Tasks/Create', { waitUntil: 'domcontentloaded' }); await page.locator('#title').fill(name); await page.locator('#description').fill('Fixture temporal para editar dependencia.'); const project = page.locator('#projectId option').filter({ hasText: /QA/i }).first(); await expect(project).toBeAttached(); await page.locator('#projectId').selectOption(await project.getAttribute('value') as string); await page.waitForFunction(() => document.querySelectorAll('#sectionId option').length > 1); await page.locator('#sectionId').selectOption(await page.locator('#sectionId option').nth(1).getAttribute('value') as string); await page.locator('#btnSubmit').click(); await page.waitForURL(/Tasks\/Details\//i); return page.url().split('/').pop()!; };
+  const first = `QA M03-16 A ${marker}`; const second = `QA M03-16 B ${marker}`; const firstId = await createTask(first); await createTask(second);
+  await page.getByRole('tab', { name: /Dependencias/i }).click(); await page.locator('#depTaskSelect').selectOption({ label: first }); await page.locator('#btnAddDependency').click(); const dependency = page.locator('#dependenciesContent [id^="dep-"]').filter({ hasText: first }).first(); await expect(dependency).toBeVisible({ timeout: 20_000 }); await dependency.locator('button[title="Editar"]').click(); await page.locator('#swal2-select').selectOption('start_to_start'); await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await page.waitForTimeout(700); await page.reload({ waitUntil: 'networkidle' }); await page.getByRole('tab', { name: /Dependencias/i }).click(); const reloaded = page.locator('#dependenciesContent [id^="dep-"]').filter({ hasText: first }).first(); await reloaded.locator('button[title="Editar"]').click(); await expect(page.locator('#swal2-select')).toHaveValue('start_to_start'); await testInfo.attach('manager-proyectos-dependencia-editada', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+});
