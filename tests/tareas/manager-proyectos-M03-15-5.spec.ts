@@ -1,0 +1,14 @@
+import { expect, test } from '@playwright/test';
+import { DashboardPage } from '../pages/DashboardPage';
+import { LoginPage } from '../pages/LoginPage';
+import { OrganizationPage } from '../pages/OrganizationPage';
+
+test('M03-15-5 — Manager Proyectos — Crear dependencia entre tareas', async ({ page }, testInfo) => {
+  test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD, 'Faltan credenciales');
+  const login = new LoginPage(page); const org = new OrganizationPage(page); const dashboard = new DashboardPage(page);
+  await login.open(); await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!); if (/SelectOrganizationAtLogin/i.test(page.url())) { await org.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe'); await org.continue(); }
+  await login.expectAuthenticated(); await dashboard.expectLoaded(); const marker = Date.now();
+  const createTask = async (name: string) => { await page.goto('/Tasks/Create', { waitUntil: 'domcontentloaded' }); await page.locator('#title').fill(name); await page.locator('#description').fill('Fixture temporal para dependencia.'); const project = page.locator('#projectId option').filter({ hasText: /QA/i }).first(); await expect(project).toBeAttached(); await page.locator('#projectId').selectOption(await project.getAttribute('value') as string); await page.waitForFunction(() => document.querySelectorAll('#sectionId option').length > 1); await page.locator('#sectionId').selectOption(await page.locator('#sectionId option').nth(1).getAttribute('value') as string); await page.locator('#btnSubmit').click(); await page.waitForURL(/Tasks\/Details\//i); return page.url().split('/').pop()!; };
+  const first = `QA M03-15 A ${marker}`; const second = `QA M03-15 B ${marker}`; const firstId = await createTask(first); const secondId = await createTask(second);
+  await page.getByRole('tab', { name: /Dependencias/i }).click(); const select = page.locator('#depTaskSelect'); await expect(select).toBeVisible(); await select.selectOption({ label: first }); await page.locator('#btnAddDependency').click(); await expect(page.locator('#dependenciesContent [id^="dep-"]').filter({ hasText: first })).toBeVisible({ timeout: 20_000 }); await page.reload({ waitUntil: 'networkidle' }); await page.getByRole('tab', { name: /Dependencias/i }).click(); await expect(page.locator('#dependenciesContent [id^="dep-"]').filter({ hasText: first })).toBeVisible({ timeout: 20_000 }); await page.goto(`/Tasks/Details/${firstId}`); await page.getByRole('tab', { name: /Dependencias/i }).click(); await expect(page.locator('#dependenciesContent')).toContainText(second, { timeout: 20_000 }); await testInfo.attach('manager-proyectos-dependencia-creada', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+});
