@@ -1,0 +1,10 @@
+import { expect, test } from '@playwright/test';
+import { DashboardPage } from '../pages/DashboardPage';
+import { LoginPage } from '../pages/LoginPage';
+import { OrganizationPage } from '../pages/OrganizationPage';
+
+test('M05-15-5 — Manager Proyectos — Escalar ticket', async ({ page }, testInfo) => {
+  test.setTimeout(60_000); test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD, 'Faltan credenciales QA');
+  const login=new LoginPage(page); const org=new OrganizationPage(page); const dashboard=new DashboardPage(page); await login.open(); await login.signIn(process.env.ATHENEA_USER!,process.env.ATHENEA_PASSWORD!); if(/SelectOrganizationAtLogin/i.test(page.url())){await org.select(process.env.ATHENEA_ORGANIZATION??'QA Checkout Stripe');await org.continue();} await login.expectAuthenticated(); await dashboard.expectLoaded();
+  await page.goto('/Tickets/Index',{waitUntil:'domcontentloaded'}); const ticket=page.getByRole('row').filter({hasText:/QA M05-12/}).last(); await expect(ticket).toBeVisible(); await ticket.click(); await expect(page).toHaveURL(/\/Tickets\/Details\//); await page.locator('button').filter({hasText:/^\s*Escalar\s*$/i}).click(); const modal=page.locator('.modal.show').last(); await expect(modal).toBeVisible(); const modalSelect=modal.locator('select').first(); await modalSelect.selectOption(await modalSelect.locator('option').nth(1).getAttribute('value') as string); const reason=modal.locator('textarea').first(); if(await reason.count()) await reason.fill('Escalación QA M05-15-5'); await page.getByRole('button',{name:/Escalar ticket/i}).last().click(); await expect(page.locator('body')).toContainText(/escalad|historial/i,{timeout:15000}); await page.reload({waitUntil:'domcontentloaded'}); await expect(page.locator('body')).toContainText(/Escalación QA M05-15-5|escalad/i,{timeout:15000}); const evidencePath='test-results/manager-proyectos-M05-15-ticket-escalado.png'; await page.screenshot({path:evidencePath,fullPage:true}); await testInfo.attach('manager-proyectos-ticket-escalado',{path:evidencePath,contentType:'image/png'});
+});
