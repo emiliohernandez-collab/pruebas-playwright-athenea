@@ -1,0 +1,14 @@
+import { expect, test } from '@playwright/test';
+import { DashboardPage } from '../pages/DashboardPage';
+import { LoginPage } from '../pages/LoginPage';
+import { OrganizationPage } from '../pages/OrganizationPage';
+
+test('M03-17-5 — Manager Proyectos — Eliminar dependencia', async ({ page }, testInfo) => {
+  test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD, 'Faltan credenciales');
+  const login = new LoginPage(page); const org = new OrganizationPage(page); const dashboard = new DashboardPage(page);
+  await login.open(); await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!); if (/SelectOrganizationAtLogin/i.test(page.url())) { await org.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe'); await org.continue(); }
+  await login.expectAuthenticated(); await dashboard.expectLoaded(); const marker = Date.now();
+  const createTask = async (name: string) => { await page.goto('/Tasks/Create', { waitUntil: 'domcontentloaded' }); await page.locator('#title').fill(name); await page.locator('#description').fill('Fixture temporal para eliminar dependencia.'); const project = page.locator('#projectId option').filter({ hasText: /QA/i }).first(); await expect(project).toBeAttached(); await page.locator('#projectId').selectOption(await project.getAttribute('value') as string); await page.waitForFunction(() => document.querySelectorAll('#sectionId option').length > 1); await page.locator('#sectionId').selectOption(await page.locator('#sectionId option').nth(1).getAttribute('value') as string); await page.locator('#btnSubmit').click(); await page.waitForURL(/Tasks\/Details\//i); return page.url().split('/').pop()!; };
+  const first = `QA M03-17 A ${marker}`; const second = `QA M03-17 B ${marker}`; const firstId = await createTask(first); await createTask(second);
+  await page.getByRole('tab', { name: /Dependencias/i }).click(); await page.locator('#depTaskSelect').selectOption({ label: first }); await page.locator('#btnAddDependency').click(); const dependency = page.locator('#dependenciesContent [id^="dep-"]').filter({ hasText: first }).first(); await expect(dependency).toBeVisible({ timeout: 20_000 }); const dependencyId = await dependency.getAttribute('id'); await dependency.locator('button[title="Eliminar"]').click(); await page.getByRole('button', { name: 'Eliminar', exact: true }).click(); await expect(page.locator(`#${dependencyId}`)).toHaveCount(0); await page.reload({ waitUntil: 'networkidle' }); await page.getByRole('tab', { name: /Dependencias/i }).click(); await expect(page.locator('#dependenciesContent [id^="dep-"]').filter({ hasText: first })).toHaveCount(0); await testInfo.attach('manager-proyectos-dependencia-eliminada', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+});
