@@ -3,10 +3,37 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
 import { OrganizationPage } from '../pages/OrganizationPage';
 
-test('M04-05-5 — Manager Proyectos — Aprobar registro de tiempo', async ({ page }, testInfo) => {
-  test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD, 'Faltan credenciales');
+test.setTimeout(120_000);
+
+async function signIn(page: any, user: string, password: string) {
   const login = new LoginPage(page); const org = new OrganizationPage(page); const dashboard = new DashboardPage(page);
-  page.on('dialog', async dialog => { await dialog.accept(); });
-  await login.open(); await login.signIn(process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!); if (/SelectOrganizationAtLogin/i.test(page.url())) { await org.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe'); await org.continue(); }
-  await login.expectAuthenticated(); await dashboard.expectLoaded(); await page.goto('/TimesheetApproval/Index', { waitUntil: 'networkidle' }); await expect(page.locator('body')).toContainText(/Aprobación de tiempo/i); const pending = page.getByRole('row').filter({ hasText: 'Demo. Lider de Equipo.' }).filter({ hasText: '9 h' }).first(); await expect(pending).toBeVisible({ timeout: 20_000 }); await pending.getByRole('button', { name: /Aprobar/i }).click(); await page.waitForTimeout(1200); await page.reload({ waitUntil: 'networkidle' }); await expect(page.getByRole('row').filter({ hasText: 'Demo. Lider de Equipo.' }).filter({ hasText: '9 h' })).toHaveCount(0); await testInfo.attach('manager-proyectos-tiempo-aprobado', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+  await login.open(); await login.signIn(user, password);
+  if (/SelectOrganizationAtLogin/i.test(page.url())) { await org.select(process.env.ATHENEA_ORGANIZATION ?? 'QA Checkout Stripe'); await org.continue(); }
+  await login.expectAuthenticated(); await dashboard.expectLoaded();
+}
+
+test('M04-05-5 — Manager Proyectos — Aprobar registro de tiempo', async ({ page }, testInfo) => {
+  test.skip(!process.env.ATHENEA_USER || !process.env.ATHENEA_PASSWORD || !process.env.ATHENEA_COLLAB_USER || !process.env.ATHENEA_COLLAB_PASSWORD, 'Faltan credenciales QA');
+  await signIn(page, process.env.ATHENEA_USER!, process.env.ATHENEA_PASSWORD!);
+  const marker = Date.now(); const taskTitle = `QA M04-05 colaborador ${marker}`; const description = `Registro QA M04-05 colaborador ${marker}`;
+  await page.goto('/Tasks/Create', { waitUntil: 'domcontentloaded' });
+  await page.locator('#title').fill(taskTitle); await page.locator('#description').fill('Tarea temporal para aprobar tiempo de colaborador.');
+  const project = page.locator('#projectId option').filter({ hasText: /QA M02-22 Proyecto 1795051041513/i }).first(); await expect(project).toBeAttached();
+  await page.locator('#projectId').selectOption(await project.getAttribute('value') as string); await page.waitForFunction(() => document.querySelectorAll('#sectionId option').length > 1);
+  await page.locator('#sectionId').selectOption(await page.locator('#sectionId option').nth(1).getAttribute('value') as string); await page.locator('#btnSubmit').click(); await page.waitForURL(/Tasks\/Details\//i);
+  const taskUrl = page.url(); const assignee = page.locator('#extraAssigneeSelect'); const extra = assignee.locator('option').filter({ hasText: /Colaborador/i }).first();
+  await expect(extra).toBeAttached(); await assignee.selectOption(await extra.getAttribute('value') as string); await assignee.locator('xpath=following-sibling::button').click();
+
+  const browser = page.context().browser(); if (!browser) throw new Error('No se pudo abrir el contexto del colaborador');
+  const collaboratorContext = await browser.newContext({ viewport: { width: 1280, height: 900 } }); const collaborator = await collaboratorContext.newPage();
+  try {
+    await signIn(collaborator, process.env.ATHENEA_COLLAB_USER!, process.env.ATHENEA_COLLAB_PASSWORD!); await collaborator.goto(taskUrl, { waitUntil: 'domcontentloaded' }); await expect(collaborator).toHaveURL(/Tasks\/Details\//i);
+    await collaborator.getByRole('tab', { name: /Tiempo/i }).click(); await collaborator.locator('#teHours').fill('0.5'); await collaborator.locator('#teDescription').fill(description); await collaborator.locator('#btnAddTimeEntry').click();
+    await collaborator.goto(taskUrl, { waitUntil: 'domcontentloaded' }); await collaborator.getByRole('tab', { name: /Tiempo/i }).click(); await expect(collaborator.locator('#timeEntriesContent')).toContainText(description, { timeout: 20_000 });
+  } finally { await collaboratorContext.close(); }
+
+  await page.goto('/TimesheetApproval/Index', { waitUntil: 'domcontentloaded' }); await expect(page.locator('body')).toContainText(/Aprobación de tiempo/i);
+  const pending = page.getByRole('row').filter({ hasText: description }).first(); await expect(pending).toBeVisible({ timeout: 20_000 }); await pending.locator('button[title="Aprobar"]').click();
+  await page.waitForTimeout(800); await page.reload({ waitUntil: 'domcontentloaded' }); await expect(page.getByRole('row').filter({ hasText: description })).toHaveCount(0);
+  const evidencePath = 'test-results/manager-proyectos-M04-05-aprobado.png'; await page.screenshot({ path: evidencePath, fullPage: true }); await testInfo.attach('manager-proyectos-tiempo-aprobado', { path: evidencePath, contentType: 'image/png' });
 });
