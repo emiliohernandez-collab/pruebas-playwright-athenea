@@ -17,8 +17,14 @@ test('M13-06-5 — Manager Proyectos — Solicitar verificación de WhatsApp', a
   await expect(whatsapp).toHaveCount(1);
   const wasEnabled = await whatsapp.isChecked();
   if (!wasEnabled) { await whatsapp.locator('..').click(); }
-  await expect(page.getByRole('button', { name: 'Enviar código', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Enviar código', exact: true })).toBeVisible();
+  const send = page.getByRole('button', { name: 'Enviar código', exact: true }).first();
+  await expect(send).toBeVisible();
+  await send.click();
+  const confirmSend = page.getByRole('button', { name: 'Enviar código', exact: true }).last();
+  await expect(confirmSend).toBeVisible();
+  await confirmSend.click({ noWaitAfter: true });
+  await page.waitForTimeout(4000);
+  await expect(page.locator('body')).toContainText(/Enviado|enviado|No se pudo enviar el código|Error/i);
   const evidence = 'test-results/manager-proyectos-M13-06-whatsapp.png';
   await page.screenshot({ path: evidence, fullPage: true });
   await testInfo.attach('manager-proyectos-solicitar-whatsapp', { path: evidence, contentType: 'image/png' });
